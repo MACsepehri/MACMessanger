@@ -9,7 +9,7 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DB_DIR = os.path.join(BASE_DIR, "static", "db")
 os.makedirs(DB_DIR, exist_ok=True)
 
-DATABASE = os.path.join(DB_DIR, "users.db")
+DATABASE = os.path.join(DB_DIR, "database.db")
 
 
 app = Flask(__name__)
@@ -28,16 +28,16 @@ class Users(db.Model):
     password = db.Column(db.String, nullable=False)
     chats = db.Column(db.JSON, default=lambda: {"chats": []})
 
+class Chatroom(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String, nullable=False)
+    chats = db.Column(db.JSON, default=lambda: {"chats": []})
 
 with app.app_context():
     db.create_all()
 
 
 def sync_contacts(user):
-    """
-    If another user already has `user` in their contacts,
-    add that other user to `user`'s contacts as well.
-    """
 
     all_users = Users.query.all()
 
@@ -48,13 +48,11 @@ def sync_contacts(user):
 
     for other_user in all_users:
 
-        # Don't compare the user with themselves
         if other_user.id == user.id:
             continue
 
         other_chats = other_user.chats or {"chats": []}
 
-        # Check if other_user has current user
         found = any(
             chat.get("id") == user.id
             for chat in other_chats.get("chats", [])
@@ -63,7 +61,6 @@ def sync_contacts(user):
         if not found:
             continue
 
-        # Check if current user already has other_user
         already_exists = any(
             chat.get("id") == other_user.id
             for chat in user_chats_list
@@ -72,7 +69,6 @@ def sync_contacts(user):
         if already_exists:
             continue
 
-        # Add other_user to current user's contacts
         user_chats_list.append({
             "id": other_user.id,
             "username": other_user.name,
@@ -234,6 +230,9 @@ def add_contact():
         target_user.chats = target_chats
 
 
+    db.session.commit()
+
+    chatroom = Chatroom(f"{db.session.get(Users, session['user_id'])}_{target_user.name}")
     db.session.commit()
 
     flash("Contact added successfully!")
