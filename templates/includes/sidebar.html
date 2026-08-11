@@ -1,0 +1,15 @@
+<div class="sidebar">
+    <div class="profile-box">
+        <a href="/profile">
+            <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQosM3prtK4UTYRUANfeEHS9hRQFfql4Qj-lEDyWnNkBw&s=10" alt="Profile Image" class="profile-image">
+            <pre class="username">{{ user.name }}    Public ID: {{ user.id }}</pre>
+        </a>
+    </div>
+    <div class="add-new-contact-box">
+        <button class="add-new-contact" onclick="javascript:showAndHideContactBox();">Add new contact</button>
+    </div>
+
+    <div class="box">
+        {{ user.chats }}
+    </div>
+</div>
