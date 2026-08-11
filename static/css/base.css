@@ -5,6 +5,7 @@
 
 * {
     font-family: "Ubuntu";
+    transition: all 500ms ease-in-out;
 }
 
 :root {
@@ -29,7 +30,8 @@ input[type="submit"] {
 
 input[type="text"],
 input[type="password"],
-input[type="number"] {
+input[type="number"],
+textarea {
     outline: none;
     border: 2px solid black;
     background: var(--input-bg-color);
@@ -41,7 +43,8 @@ input[type="number"] {
 
 input[type="text"]:focus,
 input[type="password"]:focus,
-input[type="number"]:focus {
+input[type="number"]:focus,
+textarea:focus {
     outline: none;
     border: 2px solid black;
 }

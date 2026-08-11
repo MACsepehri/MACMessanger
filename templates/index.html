@@ -9,21 +9,4 @@
     {% include "includes/contact.html" %}
 
     <script src="/static/js/index.js"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            fetch('/sync-contacts')
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        console.log('Sync result:', data.message);
-                        if (data.added_count > 0) {
-                            location.reload();
-                        }
-                    }
-                })
-                .catch(error => {
-                    console.error('Error syncing contacts:', error);
-                });
-        });
-    </script>
 {% endblock %}

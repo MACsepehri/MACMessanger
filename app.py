@@ -101,7 +101,6 @@ def index():
         session.clear()
         return redirect("/")
 
-    # Synchronize contacts
     sync_contacts(user)
 
     return render_template(
