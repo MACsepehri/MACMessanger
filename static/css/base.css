@@ -1,0 +1,45 @@
+@font-face {
+    font-family: "Ubuntu";
+    src: url("/static/font/main.ttf");
+}
+
+* {
+    font-family: "Ubuntu";
+}
+
+:root {
+    --border-color: #91d9ff;
+    --bg-color: #cfeeff;
+    --button-bg-color: #36aeef;
+    --input-color: #65c7fc;
+}
+
+body {
+    background-color: var(--bg-color);
+}
+
+button,
+input[type="submit"] {
+    cursor: pointer;
+    background: var(--button-bg-color);
+    padding: 5px;
+    width: 100px;
+    border-radius: 5px;
+}
+
+input[type="text"],
+input[type="password"] {
+    outline: none;
+    border: 2px solid black;
+    background: var(--input-bg-color);
+    color: black;
+    padding: 5px;
+    margin: 5px;
+    border-radius: 5px;
+}
+
+input[type="text"]:focus,
+input[type="password"]:focus {
+    outline: none;
+    border: 2px solid black;
+}

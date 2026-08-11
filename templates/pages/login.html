@@ -1,0 +1,35 @@
+{% extends "includes/base.html" %}
+
+{% block head %}
+    <style>
+        .login-box {
+            margin: auto;
+            text-align: center;
+            width: 300px;
+            padding: 5px;
+            border-radius: 10px;
+            border-bottom: 5px solid var(--border-color);
+            transform: translateY(25vh);
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+    <div class="login-box">
+        <div>
+            <h1>Create account</h1>
+        </div>
+
+        <div class="login-form">
+            <form action="/auth" method="post" id="login-form">
+                <input type="text" placeholder="Username" name="username"><br>
+                <input type="password" placeholder="Password" name="password"><br>
+                <input type="password" placeholder="Confirm password" name="confirm-password"><br>
+            </form>
+
+            <button onclick="javascript:login();">Login</button>
+        </div>
+    </div>
+
+    <script src="/static/js/login.js"></script>
+{% endblock %}

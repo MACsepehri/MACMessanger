@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/static/css/base.css">
+    <title>Simple chatroom</title>
+
+    {% block head %}
+    {% endblock %}
+</head>
+<body>
+    
+    {% block body %}
+    {% endblock %}
+
+    {% for alertMessages in get_flashed_messages() %}
+        <input type="hidden" id="hiddenMSG" value="{{ alertMessages }}">
+        <script>alert(document.getElementById("hiddenMSG").value);</script>
+    {% endfor %}
+</body>
+</html>
