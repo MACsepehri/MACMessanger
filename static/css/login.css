@@ -1,0 +1,16 @@
+main * {
+    text-align: center;
+    margin: auto;
+}
+
+.login-box hr {
+    width: 400px;
+}
+
+.error {
+    color: red;
+}
+
+.success {
+    color: green;
+}

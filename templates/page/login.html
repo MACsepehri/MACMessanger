@@ -5,5 +5,116 @@
 {% endblock %}
 
 {% block body %}
-    <div></div>
+    <div class="login-box">
+        <div class="login-title">
+            <h1>ورود | ثبت نام</h1>
+        </div>
+
+        <br>
+        <hr>
+        <br>
+
+        <div class="login-form">
+            <form action="/auth" method="post" id="loginForm">
+
+                <input type="text" placeholder="نام کاربری" name="username"><br>
+                <input type="email" placeholder="ایمیل" name="email"><br>
+                <input type="password" placeholder="رمز" name="password"><br>
+                <input type="password" placeholder="تکرار رمز" name="confirmPassword"><br>
+
+            </form>
+
+            <button type="button" onclick="login();">
+                ورود | ثبت نام
+            </button>
+
+            <br>
+            <br>
+
+            <div>
+                <p class="error"></p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const errorID = document.getElementsByClassName("error")[0];
+        var auth = false
+
+        function isSimilar(password, confirmPassword) {
+            return password === confirmPassword;
+        }
+
+        async function checkUser() {
+            const name = document.getElementsByName("username")[0].value;
+            const password = document.getElementsByName("password")[0].value;
+            const confirmPassword = document.getElementsByName("confirmPassword")[0].value;
+            const email = document.getElementsByName("email")[0].value;
+            const loginForm = document.getElementById("loginForm");
+
+            if (!name && !email && !password && !confirmPassword) {
+                errorID.innerText = "";
+                errorID.className = "";
+                return;
+            }
+
+            if (password !== confirmPassword) {
+                errorID.classidName = "error";
+                errorID.innerText = "رمز عبورها برابر نیستند.";
+                return;
+            }
+
+            if (!name || !email || !password) {
+                errorID.innerText = "";
+                errorID.className = "";
+                return;
+            }
+
+            const params = new URLSearchParams({
+                username: name,
+                email: email
+            });
+
+            try {
+                const response = await fetch(`/user-exist?${params}`);
+                const data = await response.json();
+
+                if (data.exists) {
+                    errorID.className = "error";
+                    errorID.innerText =
+                        "کاربری با این اطلاعات وجود دارد.";
+                    auth = false;
+                } else {
+                    if (email.endsWith("@gmail.com")) {
+                        errorID.className = "success";
+                        errorID.innerText =
+                            "میتوانید حساب بسازید.";
+                        auth = true;
+                    }
+                    else {
+                        errorID.className = "error";
+                        errorID.innerText =
+                            "لطفا یک ایمیل معتبر وارد کنید.";
+                        auth = false;
+                    }
+                }
+
+            } catch (error) {
+                console.error(error);
+
+                errorID.className = "error";
+                errorID.innerText =
+                    "خطا در ارتباط با سرور.";
+                auth = false;
+            }
+        }
+
+        function login() {
+            if (auth) {
+                loginForm.submit()
+            }
+        }
+
+        setInterval(checkUser, 1000);
+    </script>
 {% endblock %}

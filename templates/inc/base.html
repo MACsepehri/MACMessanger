@@ -18,5 +18,10 @@
         {% block body %}
         {% endblock %}
     </main>
+
+    {% for flashed_messages in get_flashed_messages() %}
+        <input type="hidden" id="flash-message" value="{{ flashed_messages }}">
+        <script>alert(document.getElementById("flash-message").value);</script>
+    {% endfor %}
 </body>
 </html>
