@@ -1,0 +1,68 @@
+@font-face {
+    font-family: "fa";
+    src: url("/static/font/IRANYekanX-regular.woff");
+}
+
+@font-face {
+    font-family: "en";
+    src: url("/static/font/font.ttf");
+}
+
+* {
+    font-family: "fa";
+}
+
+:root {
+    --box-color: #a7e3ff;
+    --border-color: #68cfff;
+    --almost-white: #e2f5ff;
+}
+
+body {
+    background-color: var(--almost-white);
+}
+
+.en {
+    font-family: "en";
+}
+
+.header-image {
+    max-width: 100px;
+    border-radius: 25px;
+    position: absolute;
+    right: 10px;
+}
+
+.title {
+    position: absolute;
+    right: 150px;
+}
+
+.profile-url img {
+    max-width: 100px;
+    border-radius: 100%;
+}
+
+.header-left {
+    position: absolute;
+    left: 40px;
+}
+
+header {
+    width: 100%;
+    padding: 10px;
+    height: 100px;
+    background: linear-gradient(to right, var(--almost-white), var(--box-color));
+    position: absolute;
+    right: 0px;
+    top: 0px;
+    border-bottom: 3px solid var(--border-color);
+}
+
+main {
+    transform: translateY(200px);
+}
+
+p, textarea, input, h1, h2, h3, h4, h5, h6, span, b, u {
+    direction: rtl;
+}

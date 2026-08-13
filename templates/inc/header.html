@@ -1,0 +1,19 @@
+<header>
+    <div class="header-right">
+        <div>
+            <img src="/static/image/logo.png" alt="A-Message Logo" class="header-image" title="A-Message">
+        </div>
+        <div>
+            <h1 class="title">پیام رسان <span class="en">A Message</span></h1>
+        </div>
+    </div>
+    <div class="header-left">
+        {% if not session.login %}
+            <div class="profile-url">
+                <a href="/login">
+                    <img src="/static/image/user/anon.png" alt="anon-image">
+                </a>
+            </div>
+        {% endif %}
+    </div>
+</header>
