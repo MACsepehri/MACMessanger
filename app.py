@@ -1,6 +1,6 @@
 from flask import Flask, render_template, redirect, flash, jsonify, session, request
 from flask_sqlalchemy import SQLAlchemy
-from deep_translator import GoogleTranslator
+from sqlalchemy.ext.mutable import MutableList
 import os
 import time
 
@@ -13,6 +13,7 @@ app.config["SQLALCHEMY_DATABASE_URI"] = f"sqlite:///{DATABASE_PATH}"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 db = SQLAlchemy(app)
 
+
 class Extension:
     def checkSession(self):
         if not session:
@@ -24,6 +25,7 @@ class Extension:
         return session.get("login", False)
 
     def createAccount(self, new_profile_data):
+        new_profile_data["username"] = new_profile_data["username"].strip().lower()
         session["login"] = True
         session["profile"] = new_profile_data
         if "chats" not in session["profile"]:
@@ -46,31 +48,26 @@ class Extension:
         
         updated_chats = []
         for chat in user_chats:
-            other_user = [p for p in chat.participants if p != username][0] if chat.participants else None
-            
-            if other_user:
-                updated_chats.append({
-                    "chatname": chat.chatname,
-                    "participants": chat.participants,
-                    "messages_count": len(chat.get_messages())
-                })
+            other_user = [p for p in chat.participants if p != username][0]
+            updated_chats.append({
+                "chatname": chat.chatname,
+                "participants": chat.participants,
+                "messages_count": len(chat.get_messages())
+            })
         
         session["profile"]["chats"] = updated_chats
-        
-        try:
-            user = User.query.filter_by(username=username).first()
-            if user:
-                pass
-        except Exception as e:
-            print(f"Error updating user chats: {e}")
 
     def getAudience(self):
         audience = []
-        for users in session["profile"]["chats"]:
-            audience.append(users["chatname"].replace("_", "").replace(session["profile"]["username"], ""))
+        username = session["profile"]["username"]
+        for chat in session["profile"]["chats"]:
+            other = chat["chatname"].replace(username, "").replace("_", "")
+            audience.append(other)
         return audience
 
+
 extension = Extension()
+
 
 # database
 class User(db.Model):
@@ -79,23 +76,26 @@ class User(db.Model):
     email = db.Column(db.String, unique=True, nullable=False)
     password = db.Column(db.String, unique=True, nullable=False)
 
+
 class Chats(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     chatname = db.Column(db.String, unique=True, nullable=False)
-    participants = db.Column(db.JSON)
-    messages = db.Column(db.JSON, default=list)
+
+    participants = db.Column(MutableList.as_mutable(db.JSON), default=list)
+    messages = db.Column(MutableList.as_mutable(db.JSON), default=list)
+
     created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
     
     def add_message(self, sender, message, timestamp=None):
-        if self.messages is None:
-            self.messages = []
         if timestamp is None:
             timestamp = time.time()
+
         self.messages.append({
             "sender": sender,
             "message": message,
             "timestamp": timestamp
         })
+
         db.session.commit()
     
     def get_messages(self):
@@ -104,9 +104,11 @@ class Chats(db.Model):
     def get_participants(self):
         return self.participants or []
 
+
 # database init
 with app.app_context():
     db.create_all()
+
 
 # routes
 @app.route("/")
@@ -118,6 +120,7 @@ def index():
         extension.updateChatInIndex()
         return render_template("index.html", session=session, audience=extension.getAudience())
 
+
 # api
 @app.route("/user-exist")
 def user_exist():
@@ -126,10 +129,7 @@ def user_exist():
     password = request.args.get("password")
 
     if not username or not email or not password:
-        return jsonify({
-            "login": False,
-            "error": "missing_data"
-        })
+        return jsonify({"login": False, "error": "missing_data"})
 
     user = User.query.filter_by(
         username=username,
@@ -143,14 +143,10 @@ def user_exist():
             "email": user.email,
             "chats": []
         })
+        return jsonify({"login": True})
 
-        return jsonify({
-            "login": True
-        })
+    return jsonify({"login": False})
 
-    return jsonify({
-        "login": False
-    })
 
 @app.route("/auth", methods=["POST"])
 def auth():
@@ -175,7 +171,6 @@ def auth():
             "email": user.email,
             "chats": []
         })
-
         return redirect("/")
 
     existing_user = User.query.filter(
@@ -195,11 +190,7 @@ def auth():
         flash("رمز عبور و تکرار آن یکسان نیستند.")
         return redirect("/")
 
-    user = User(
-        username=username,
-        email=email,
-        password=password
-    )
+    user = User(username=username, email=email, password=password)
 
     db.session.add(user)
     db.session.commit()
@@ -212,11 +203,12 @@ def auth():
 
     return redirect("/")
 
+
 @app.route("/logout")
 def logout():
-    global session
     session.clear()
     return redirect("/")
+
 
 @app.route("/add-contact", methods=["POST"])
 def add_contact():
@@ -224,8 +216,8 @@ def add_contact():
         flash("لطفاً ابتدا وارد شوید.")
         return redirect("/")
     
-    user_id = session["profile"].get("username")
-    target_id = request.form.get("id")
+    user_id = session["profile"]["username"].strip().lower()
+    target_id = request.form.get("id").strip().lower()
     
     if not target_id:
         flash("آیدی مخاطب را وارد کنید.")
@@ -240,7 +232,7 @@ def add_contact():
         flash("کاربر مورد نظر وجود ندارد.")
         return redirect("/")
     
-    chat_name = f"{min(user_id, target_id)}_{max(user_id, target_id)}"
+    chat_name = f"{user_id}_{target_id}"
     
     existing_chat = Chats.query.filter_by(chatname=chat_name).first()
     if existing_chat:
@@ -269,6 +261,47 @@ def add_contact():
         print(f"Error: {e}")
     
     return redirect("/")
+
+
+@app.route("/send-message", methods=["GET"])
+def send_message():
+    if not session.get("login", False):
+        return jsonify({"success": False, "error": "Not logged in"}), 401
+
+    message = request.args.get("message")
+    sender = session["profile"]["username"].strip().lower()
+    receiver = request.args.get("toid").strip().lower()
+
+    if not message or not receiver:
+        return jsonify({"success": False, "error": "Missing message or recipient"}), 400
+
+    if sender == receiver:
+        return jsonify({"success": False, "error": "Cannot send message to yourself"}), 400
+
+    chat_name = f"{sender}_{receiver}"
+    chat = Chats.query.filter_by(chatname=chat_name).first()
+
+    if not chat:
+        chat_name = f"{receiver}_{sender}"
+        chat = Chats.query.filter_by(chatname=chat_name).first()
+
+    if not chat:
+        return jsonify({"success": False, "error": "Chat not found"}), 404
+
+    chat.add_message(sender, message)
+    return jsonify({"success": True, "message": "Message sent"})
+
+@app.route("/get-messages")
+def get_messages():
+    toid = request.args.get("toid")
+    sender = session["profile"]["username"].strip().lower()
+    chat_name = f"{sender}_{toid}"
+    chat = Chats.query.filter_by(chatname=chat_name).first()
+
+    if not chat:
+        chat_name = f"{toid}_{sender}"
+        chat = Chats.query.filter_by(chatname=chat_name).first()
+    return {"success" : True if chat != None else False, "data": chat.get_messages()}
 
 if __name__ == "__main__":
     app.run(debug=True)

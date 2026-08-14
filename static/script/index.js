@@ -43,22 +43,54 @@ function addContact() {
     }
 }
 
-function sendMessage(username) {
-    message = document.querySelector("textarea.message-input").value;
-    if (message.trim() === "") { alert("نمیتوانید پیام خالی بفرستید."); }
-    else {
-        let messageBox = document.createElement("div");
-        let messageFrom = document.createElement("h2");
-        let messageText = document.createElement("pre");
-        messageBox.className = "message-div";
-        messageFrom.innerText = username;
-        messageText.innerText = message;
+async function send_message_api(toid, message) {
+    console.log(toid, message)
+    
+    const url = `/send-message?message=${encodeURIComponent(message)}&toid=${encodeURIComponent(toid)}`;
 
-        messageBox.appendChild(messageFrom);
-        messageBox.appendChild(messageText);
-        message_div.appendChild(messageBox);
+    try {
+        const response = await fetch(url, {
+            method: 'GET',
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            return { success: false, error: data.error || 'Server error' };
+        }
+
+        return data;
+    } catch (error) {
+        console.error('Network error:', error);
+        return { success: false, error: 'Network error' };
     }
 }
+
+async function sendMessage(target_name, username) {
+    const messageArea = document.querySelector("textarea.message-input");
+    const message = messageArea.value.trim();
+
+    if (!message) {
+        alert("نمیتوانید پیام خالی بفرستید.");
+        return;
+    }
+
+    const result = await send_message_api(target_name, message);
+
+    if (result.success) {
+        const messageBox = document.createElement("div");
+        messageBox.className = "message-div";
+        messageBox.innerHTML = `<h2>${target_name}</h2><pre>${message}</pre>`;
+
+        const container = document.querySelector(".message-box");
+        if (container) container.appendChild(messageBox);
+
+        messageArea.value = "";
+    } else {
+        alert(result.error || "خطا در ارسال پیام.");
+    }
+}
+
 
 function openUserContactBox(username, target_name) {
     try { sidebar.removeChild(add_contact_div); }
@@ -76,7 +108,7 @@ function openUserContactBox(username, target_name) {
 
     send_message_button.className = "send-message-btn";
     send_message_button.innerText = "↑";
-    send_message_button.onclick = () => sendMessage(target_name);
+    send_message_button.onclick = () => sendMessage(target_name, username);
 
     message_bottom.className = "audience-bottom";
 
