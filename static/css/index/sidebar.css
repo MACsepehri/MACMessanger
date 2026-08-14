@@ -21,6 +21,18 @@ body {
     margin: auto;
 }
 
+.left {
+    width: calc(100% - 400px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-sizing: border-box;
+}
+
+.left-content {
+    text-align: center;
+}
+
 :root {
     --button-color: #ffffff;
     --border-color: #00aeff;
@@ -95,4 +107,8 @@ button:hover::after {
 button:hover {
     box-shadow: 0 0 30px rgba(0, 174, 255, 0.3);
     transform: scale(1.05);
+}
+
+button:active {
+    transform: scale(1.00);
 }

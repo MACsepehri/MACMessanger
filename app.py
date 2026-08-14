@@ -15,29 +15,54 @@ db = SQLAlchemy(app)
 
 class Extension:
     def checkSession(self):
-        result = None
         if not session:
             session["profile"] = {}
             session["login"] = False
             session["chat"] = {}
             session["profileImage"] = "/static/image/user/anon.png"
-            result = False
-        elif not session["login"]:
-            result = False
-        else:
-            result = True
-        return result
+            return False
+        return session.get("login", False)
 
     def createAccount(self, new_profile_data):
         session["login"] = True
         session["profile"] = new_profile_data
+        if "chats" not in session["profile"]:
+            session["profile"]["chats"] = []
 
     def logoutAccount(self):
         session.clear()
 
     def updateChatInIndex(self):
-        for data in Chats.query.all():
-            pass
+        if not session.get("login", False):
+            return
+        
+        username = session["profile"].get("username")
+        if not username:
+            return
+        
+        user_chats = Chats.query.filter(
+            Chats.participants.contains(username)
+        ).all()
+        
+        updated_chats = []
+        for chat in user_chats:
+            other_user = [p for p in chat.participants if p != username][0] if chat.participants else None
+            
+            if other_user:
+                updated_chats.append({
+                    "chatname": chat.chatname,
+                    "participants": chat.participants,
+                    "messages_count": len(chat.get_messages())
+                })
+        
+        session["profile"]["chats"] = updated_chats
+        
+        try:
+            user = User.query.filter_by(username=username).first()
+            if user:
+                pass
+        except Exception as e:
+            print(f"Error updating user chats: {e}")
 
 extension = Extension()
 
@@ -51,7 +76,27 @@ class User(db.Model):
 class Chats(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     chatname = db.Column(db.String, unique=True, nullable=False)
-    data = db.Column(db.JSON)
+    participants = db.Column(db.JSON)
+    messages = db.Column(db.JSON, default=list)
+    created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
+    
+    def add_message(self, sender, message, timestamp=None):
+        if self.messages is None:
+            self.messages = []
+        if timestamp is None:
+            timestamp = time.time()
+        self.messages.append({
+            "sender": sender,
+            "message": message,
+            "timestamp": timestamp
+        })
+        db.session.commit()
+    
+    def get_messages(self):
+        return self.messages or []
+
+    def get_participants(self):
+        return self.participants or []
 
 # database init
 with app.app_context():
@@ -64,6 +109,7 @@ def index():
     if not loggedIn:
         return render_template("page/login.html", session=session)
     else:
+        extension.updateChatInIndex()
         return render_template("index.html", session=session)
 
 # api
@@ -73,60 +119,149 @@ def user_exist():
     email = request.args.get("email")
     password = request.args.get("password")
 
-    user = User.query.filter((User.username == username) | (User.email == email) | (User.password == password)).first()
-
-    if user.username == username and user.email == email and user.password == password:
+    if not username or not email or not password:
         return jsonify({
-            "exists": False
+            "login": False,
+            "error": "missing_data"
+        })
+
+    user = User.query.filter_by(
+        username=username,
+        email=email,
+        password=password
+    ).first()
+
+    if user:
+        extension.createAccount({
+            "username": user.username,
+            "email": user.email,
+            "chats": []
+        })
+
+        return jsonify({
+            "login": True
         })
 
     return jsonify({
-        "exists": False,
-        "user": None
+        "login": False
     })
 
 @app.route("/auth", methods=["POST"])
 def auth():
-    username = request.form.get("username", None)
-    email = request.form.get("email", None)
-    password = request.form.get("password", None)
-    confirm_password = request.form.get("confirmPassword", None)
+    username = request.form.get("username")
+    email = request.form.get("email")
+    password = request.form.get("password")
+    confirm_password = request.form.get("confirmPassword")
 
-    user = User.query.filter((User.username == username) | (User.email == email) | (User.password == password)).first()
-
-    if user.username != username or user.email != email or user.password != password:
-        flash("تلاش خوبی بود :)")
+    if not username or not email or not password:
+        flash("لطفاً تمامی فیلدها را پر کنید.")
         return redirect("/")
-    elif user.username == username or user.email == email or user.password == password:
+
+    user = User.query.filter_by(
+        username=username,
+        email=email,
+        password=password
+    ).first()
+
+    if user:
         extension.createAccount({
-            "username": username,
-            "password": password,
-            "email": email,
+            "username": user.username,
+            "email": user.email,
             "chats": []
         })
-        return redirect("/")
-    if password != confirm_password:
-        flash("تلاش خوبی بود :)")
-        return redirect("/")
-    elif username == None or email == None or password == None or confirm_password == None:
-        flash("تلاش خوبی بود :)")
+
         return redirect("/")
 
-    user = User(username=username, email=email, password=password)
-    extension.createAccount({
-        "username": username,
-        "password": password,
-        "email": email,
-        "chats": []
-    })
+    existing_user = User.query.filter(
+        (User.username == username) |
+        (User.email == email)
+    ).first()
+
+    if existing_user:
+        flash("نام کاربری یا ایمیل قبلاً استفاده شده است.")
+        return redirect("/")
+
+    if not confirm_password:
+        flash("تکرار رمز عبور الزامی است.")
+        return redirect("/")
+
+    if password != confirm_password:
+        flash("رمز عبور و تکرار آن یکسان نیستند.")
+        return redirect("/")
+
+    user = User(
+        username=username,
+        email=email,
+        password=password
+    )
+
     db.session.add(user)
     db.session.commit()
+
+    extension.createAccount({
+        "username": user.username,
+        "email": user.email,
+        "chats": []
+    })
+
     return redirect("/")
 
 @app.route("/logout")
 def logout():
     global session
     session.clear()
+    return redirect("/")
+
+@app.route("/add-contact", methods=["POST"])
+def add_contact():
+    if not session.get("login", False):
+        flash("لطفاً ابتدا وارد شوید.")
+        return redirect("/")
+    
+    user_id = session["profile"].get("username")
+    target_id = request.form.get("id")
+    
+    if not target_id:
+        flash("آیدی مخاطب را وارد کنید.")
+        return redirect("/")
+    
+    if user_id == target_id:
+        flash("نمی‌توانید خودتان را اضافه کنید.")
+        return redirect("/")
+    
+    target_user = User.query.filter_by(username=target_id).first()
+    if not target_user:
+        flash("کاربر مورد نظر وجود ندارد.")
+        return redirect("/")
+    
+    chat_name = f"{min(user_id, target_id)}_{max(user_id, target_id)}"
+    
+    existing_chat = Chats.query.filter_by(chatname=chat_name).first()
+    if existing_chat:
+        flash("این مخاطب قبلاً اضافه شده است.")
+        return redirect("/")
+
+    new_chat = Chats(chatname=chat_name, participants=[user_id, target_id], messages=[])
+    
+    try:
+        db.session.add(new_chat)
+        db.session.commit()
+        
+        if "chats" not in session["profile"]:
+            session["profile"]["chats"] = []
+        
+        session["profile"]["chats"].append({
+            "chatname": chat_name,
+            "participants": [user_id, target_id]
+        })
+        
+        flash(f"مخاطب {target_id} با موفقیت اضافه شد.")
+        
+    except Exception as e:
+        db.session.rollback()
+        flash("خطا در اضافه کردن مخاطب.")
+        print(f"Error: {e}")
+    
     return redirect("/")
 
 if __name__ == "__main__":

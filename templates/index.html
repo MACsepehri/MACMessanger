@@ -5,4 +5,21 @@
 {% endblock %}
 
 {% block sidebar %}
+    <div class="right">
+        <br>
+        <div class="right-content">
+            <button onclick="javascript:addContact();">
+                اضافه کردن مخاطب
+            </button>
+        </div>
+    </div>
+    <div class="left">
+        <div class="left-content">
+            {{ session.profile }}
+        </div>
+    </div>
+{% endblock %}
+
+{% block script %}
+    <script src="/static/script/add-contact.js"></script>
 {% endblock %}

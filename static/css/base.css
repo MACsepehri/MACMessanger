@@ -11,6 +11,7 @@
 * {
     font-family: "fa";
     transition: all 500ms ease-in-out;
+    cursor: default;
 }
 
 :root {
@@ -42,6 +43,7 @@ body {
 .profile-url img {
     max-width: 100px;
     border-radius: 100%;
+    cursor: pointer;
 }
 
 .header-left {
@@ -76,4 +78,8 @@ p, textarea, input, h1, h2, h3, h4, h5, h6, span, b, u {
 
 button, input[type="submit"], input[type="image"] {
     cursor: pointer;
+}
+
+input[type="text"], input[type="number"], input[type="password"], textarea {
+    cursor: text;
 }

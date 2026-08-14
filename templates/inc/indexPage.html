@@ -16,14 +16,6 @@
     {% include "inc/header.html" %}
 
     <main>
-        <div class="right">
-            <br>
-            <div class="right-content">
-                <button class="add-contact">
-                    اضافه کردن مخاطب
-                </button>
-            </div>
-        </div>
         {% block sidebar %}
         {% endblock %}
     </main>
@@ -32,7 +24,8 @@
         <input type="hidden" id="flash-message" value="{{ flashed_messages }}">
         <script>alert(document.getElementById("flash-message").value);</script>
     {% endfor %}
-    
+    {% block script %}
+    {% endblock %}
     <script>
         function copy(text) {
             navigator.clipboard.writeText(text)
