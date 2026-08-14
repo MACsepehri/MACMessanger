@@ -21,18 +21,6 @@ body {
     margin: auto;
 }
 
-.left {
-    width: calc(100% - 400px);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    box-sizing: border-box;
-}
-
-.left-content {
-    text-align: center;
-}
-
 :root {
     --button-color: #ffffff;
     --border-color: #00aeff;
@@ -53,6 +41,7 @@ button {
     transition: all 0.3s ease;
     z-index: 1;
 }
+
 button::before,
 button::after,
 button span {

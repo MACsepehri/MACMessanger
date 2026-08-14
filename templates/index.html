@@ -11,15 +11,20 @@
             <button onclick="javascript:addContact();">
                 اضافه کردن مخاطب
             </button>
+            {% for data in audience %}
+                <button id="contact" onclick="javascript:openUserContactBox('{{ session.profile.username }}', '{{ data.capitalize()[:50] }}');">
+                    {{ data.capitalize()[:50] }}
+                </button>
+            {% endfor %}
         </div>
     </div>
     <div class="left">
         <div class="left-content">
-            {{ session.profile }}
+            
         </div>
     </div>
 {% endblock %}
 
 {% block script %}
-    <script src="/static/script/add-contact.js"></script>
+    <script src="/static/script/index.js"></script>
 {% endblock %}

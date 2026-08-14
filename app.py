@@ -64,6 +64,12 @@ class Extension:
         except Exception as e:
             print(f"Error updating user chats: {e}")
 
+    def getAudience(self):
+        audience = []
+        for users in session["profile"]["chats"]:
+            audience.append(users["chatname"].replace("_", "").replace(session["profile"]["username"], ""))
+        return audience
+
 extension = Extension()
 
 # database
@@ -110,7 +116,7 @@ def index():
         return render_template("page/login.html", session=session)
     else:
         extension.updateChatInIndex()
-        return render_template("index.html", session=session)
+        return render_template("index.html", session=session, audience=extension.getAudience())
 
 # api
 @app.route("/user-exist")

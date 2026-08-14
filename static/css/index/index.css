@@ -1,0 +1,50 @@
+.left {
+    width: calc(100% - 400px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-sizing: border-box;
+}
+
+.left-content {
+    width: 100%;
+    position: relative;
+    text-align: center;
+}
+
+.message-input {
+    width: 300px;
+    height: 30px;
+    border-radius: 5px;
+    resize: none;
+}
+
+.send-message-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 100%;
+    font-weight: bolder;
+}
+
+.audience-bottom {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    top: calc(100vh - 260px);
+    padding: 20px;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    justify-content: center;
+}
+
+#contact {
+    font-size: 20px;
+}
+
+#message-title {
+    position: absolute;
+    right: 0;
+    transform: translateY(-100px);
+}

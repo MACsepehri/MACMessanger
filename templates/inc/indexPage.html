@@ -29,14 +29,14 @@
     <script>
         function copy(text) {
             navigator.clipboard.writeText(text)
-                .then(() => {
-                    console.log('متن کپی شد!');
-                    alert('متن با موفقیت کپی شد!');
-                })
-                .catch(err => {
-                    console.error('خطا در کپی:', err);
-                    alert('خطا در کپی متن!');
-                });
+            .then(() => {
+                console.log('متن کپی شد!');
+                alert('متن با موفقیت کپی شد!');
+            })
+            .catch(err => {
+                console.error('خطا در کپی:', err);
+                alert('خطا در کپی متن!');
+            });
         }
     </script>
 </body>
