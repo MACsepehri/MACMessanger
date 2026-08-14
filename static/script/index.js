@@ -43,6 +43,23 @@ function addContact() {
     }
 }
 
+function sendMessage(username) {
+    message = document.querySelector("textarea.message-input").value;
+    if (message.trim() === "") { alert("نمیتوانید پیام خالی بفرستید."); }
+    else {
+        let messageBox = document.createElement("div");
+        let messageFrom = document.createElement("h2");
+        let messageText = document.createElement("pre");
+        messageBox.className = "message-div";
+        messageFrom.innerText = username;
+        messageText.innerText = message;
+
+        messageBox.appendChild(messageFrom);
+        messageBox.appendChild(messageText);
+        message_div.appendChild(messageBox);
+    }
+}
+
 function openUserContactBox(username, target_name) {
     try { sidebar.removeChild(add_contact_div); }
     catch {}
@@ -59,6 +76,7 @@ function openUserContactBox(username, target_name) {
 
     send_message_button.className = "send-message-btn";
     send_message_button.innerText = "↑";
+    send_message_button.onclick = () => sendMessage(target_name);
 
     message_bottom.className = "audience-bottom";
 

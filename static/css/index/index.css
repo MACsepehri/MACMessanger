@@ -1,15 +1,18 @@
 .left {
     width: calc(100% - 400px);
+    height: calc(100vh - 200px);
     display: flex;
     justify-content: center;
-    align-items: center;
+    align-items: flex-start;
     box-sizing: border-box;
+    overflow-y: auto;
 }
 
 .left-content {
     width: 100%;
     position: relative;
     text-align: center;
+    padding-bottom: 280px;
 }
 
 .message-input {
@@ -37,6 +40,24 @@
     gap: 10px;
     align-items: center;
     justify-content: center;
+}
+
+.message-div {
+    position: relative;
+    width: 400px;
+    margin: 0 0 15px 15px;
+    height: auto;
+    border-radius: 10px;
+    background: var(--box-color);
+    padding: 10px;
+}
+
+.message-div h2,
+.message-div pre {
+    text-align: left;
+    padding-left: 10px;
+    white-space: pre-wrap;
+    word-break: break-all;
 }
 
 #contact {
