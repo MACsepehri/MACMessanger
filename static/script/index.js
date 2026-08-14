@@ -1,4 +1,6 @@
 var globalState = null;
+var messageInterval = null;
+var lastMessages = [];
 
 let add_contact_div = document.createElement("div");
 let add_contact_form = document.createElement("form");
@@ -14,16 +16,17 @@ let send_message_button = document.createElement("button");
 let sidebar = document.querySelector("div.left-content");
 
 function checkAddingContact() {
-    if (add_contact_input.value.trim() === "") { alert("لطفا آی دی را وارد کنید."); }
-    else {
+    if (add_contact_input.value.trim() === "") { 
+        alert("لطفا آی دی را وارد کنید."); 
+    } else {
         add_contact_form.submit();
     }
 }
 
 function addContact() {
     if (globalState === null || globalState !== "add-contact") {
-        try { sidebar.removeChild(message_div); }
-        catch {}
+        try { sidebar.removeChild(message_div); } catch {}
+
         add_contact_div.className = "add-contact-box";
         add_contact_form.action = "/add-contact";
         add_contact_form.method = "post";
@@ -39,20 +42,16 @@ function addContact() {
         add_contact_div.appendChild(add_contact_form);
         add_contact_div.appendChild(add_contact_button);
         sidebar.appendChild(add_contact_div);
+
         globalState = "add-contact";
     }
 }
 
 async function send_message_api(toid, message) {
-    console.log(toid, message)
-    
-    const url = `/send-message?message=${encodeURIComponent(message)}&toid=${encodeURIComponent(toid)}`;
+    const url = `/send-message?message=${encodeURIComponent(message)}&toid=${encodeURIComponent(toid.toLowerCase())}`;
 
     try {
-        const response = await fetch(url, {
-            method: 'GET',
-        });
-
+        const response = await fetch(url, { method: 'GET' });
         const data = await response.json();
 
         if (!response.ok) {
@@ -78,23 +77,14 @@ async function sendMessage(target_name, username) {
     const result = await send_message_api(target_name, message);
 
     if (result.success) {
-        const messageBox = document.createElement("div");
-        messageBox.className = "message-div";
-        messageBox.innerHTML = `<h2>${target_name}</h2><pre>${message}</pre>`;
-
-        const container = document.querySelector(".message-box");
-        if (container) container.appendChild(messageBox);
-
         messageArea.value = "";
     } else {
         alert(result.error || "خطا در ارسال پیام.");
     }
 }
 
-
 function openUserContactBox(username, target_name) {
-    try { sidebar.removeChild(add_contact_div); }
-    catch {}
+    try { sidebar.removeChild(add_contact_div); } catch {}
 
     globalState = "contact-box";
 
@@ -102,6 +92,11 @@ function openUserContactBox(username, target_name) {
 
     message_title.id = "message-title";
     message_title.innerHTML = `<p>از <u>${username}</u> به <u>${target_name}</u></p>`;
+    message_div.appendChild(message_title);
+
+    let messages_container = document.createElement("div");
+    messages_container.className = "messages-container";
+    message_div.appendChild(messages_container);
 
     message_area.className = "message-input";
     message_area.placeholder = "پیام ...";
@@ -111,10 +106,64 @@ function openUserContactBox(username, target_name) {
     send_message_button.onclick = () => sendMessage(target_name, username);
 
     message_bottom.className = "audience-bottom";
-
     message_bottom.appendChild(message_area);
     message_bottom.appendChild(send_message_button);
-    message_div.appendChild(message_title);
+
     message_div.appendChild(message_bottom);
     sidebar.appendChild(message_div);
+
+    if (messageInterval !== null) {
+        clearInterval(messageInterval);
+    }
+
+    messageInterval = setInterval(() => {
+        updateMessages(target_name.toLowerCase());
+    }, 1000);
+}
+
+async function get_message_api(toid) {
+    const url = `/get-messages?toid=${encodeURIComponent(toid.toLowerCase())}`;
+
+    try {
+        const response = await fetch(url);
+        const data = await response.json();
+
+        if (!response.ok) {
+            return { success: false, error: data.error || "Server error" };
+        }
+
+        return data;
+    } catch (error) {
+        console.error("Network error:", error);
+        return { success: false, error: "Network error" };
+    }
+}
+
+async function updateMessages(toid) {
+    const result = await get_message_api(toid);
+
+    if (!result.success) return;
+
+    const messages = result.data;
+
+    if (JSON.stringify(messages) === JSON.stringify(lastMessages)) {
+        return;
+    }
+
+    lastMessages = messages;
+
+    const container = document.querySelector(".messages-container");
+    if (!container) return;
+
+    container.innerHTML = "";
+
+    messages.forEach(msg => {
+        const messageBox = document.createElement("div");
+        messageBox.className = "message-div";
+        messageBox.innerHTML = `
+            <h2>${msg.sender}</h2>
+            <pre>${msg.message}</pre>
+        `;
+        container.appendChild(messageBox);
+    });
 }

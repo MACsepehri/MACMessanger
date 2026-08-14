@@ -293,15 +293,20 @@ def send_message():
 
 @app.route("/get-messages")
 def get_messages():
-    toid = request.args.get("toid")
+    toid = request.args.get("toid").strip().lower()
     sender = session["profile"]["username"].strip().lower()
+
     chat_name = f"{sender}_{toid}"
     chat = Chats.query.filter_by(chatname=chat_name).first()
 
     if not chat:
         chat_name = f"{toid}_{sender}"
         chat = Chats.query.filter_by(chatname=chat_name).first()
-    return {"success" : True if chat != None else False, "data": chat.get_messages()}
+
+    if not chat:
+        return {"success": False, "data": []}
+
+    return {"success": True, "data": chat.get_messages()}
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=True, host="0.0.0.0")
