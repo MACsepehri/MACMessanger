@@ -14,6 +14,15 @@
                     <img src="{{ session.profileImage }}" alt="anon-image">
                 </a>
             </div>
+        {% else %}
+            <div class="profile-url">
+                <a href="/profile">
+                    <img src="{{ session.profileImage }}" alt="anon-image">
+                </a>
+                <div class="profile-desc">
+                    <p style="direction: ltr !important; cursor: pointer;" onclick="copy('{{ session.profile.username }}');" title="کپی کردن آی دی">@{{ session.profile.username }}</p>
+                </div>
+            </div>
         {% endif %}
     </div>
 </header>

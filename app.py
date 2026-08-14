@@ -1,6 +1,8 @@
 from flask import Flask, render_template, redirect, flash, jsonify, session, request
 from flask_sqlalchemy import SQLAlchemy
+from deep_translator import GoogleTranslator
 import os
+import time
 
 # init of flask
 app = Flask(__name__)
@@ -32,6 +34,10 @@ class Extension:
 
     def logoutAccount(self):
         session.clear()
+
+    def updateChatInIndex(self):
+        for data in Chats.query.all():
+            pass
 
 extension = Extension()
 

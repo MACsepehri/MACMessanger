@@ -10,6 +10,7 @@
 
 * {
     font-family: "fa";
+    transition: all 500ms ease-in-out;
 }
 
 :root {
@@ -46,6 +47,12 @@ body {
 .header-left {
     position: absolute;
     left: 40px;
+}
+
+.profile-desc {
+    position: absolute;
+    left: 120px;
+    top: 25px;
 }
 
 header {

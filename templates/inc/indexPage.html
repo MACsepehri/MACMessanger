@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/static/css/base.css">
+    <link rel="stylesheet" href="/static/css/index/sidebar.css">
+    <link rel="icon shortcut" href="/static/image/logo.png">
+    <title>A-Message : پیام رسان</title>
+
+    {% block head %}
+    {% endblock %}
+</head>
+<body>
+
+    {% include "inc/header.html" %}
+
+    <main>
+        <div class="right">
+            <br>
+            <div class="right-content">
+                <button class="add-contact">
+                    اضافه کردن مخاطب
+                </button>
+            </div>
+        </div>
+        {% block sidebar %}
+        {% endblock %}
+    </main>
+
+    {% for flashed_messages in get_flashed_messages() %}
+        <input type="hidden" id="flash-message" value="{{ flashed_messages }}">
+        <script>alert(document.getElementById("flash-message").value);</script>
+    {% endfor %}
+    
+    <script>
+        function copy(text) {
+            navigator.clipboard.writeText(text)
+                .then(() => {
+                    console.log('متن کپی شد!');
+                    alert('متن با موفقیت کپی شد!');
+                })
+                .catch(err => {
+                    console.error('خطا در کپی:', err);
+                    alert('خطا در کپی متن!');
+                });
+        }
+    </script>
+</body>
+</html>
